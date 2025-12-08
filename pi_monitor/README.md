@@ -347,7 +347,9 @@ which pi_monitor
 sudo pi_monitor
 ```
 
-### Create Systemd Service (Auto-start on Boot)
+### Setup Auto-Start on Boot (Systemd Service)
+
+#### Create and Enable Service
 
 To run pi_monitor automatically at system startup:
 
@@ -378,12 +380,131 @@ sudo systemctl enable pi-monitor
 
 # Start service now
 sudo systemctl start pi-monitor
+```
 
+#### Check if Service is Running
+
+```bash
 # Check service status
 sudo systemctl status pi-monitor
+
+# Expected output when running:
+# ??? pi-monitor.service - Pi System Monitor Display
+#      Loaded: loaded (/etc/systemd/system/pi-monitor.service; enabled; ...)
+#      Active: active (running) since ...
+
+# Check if enabled for auto-start
+sudo systemctl is-enabled pi-monitor
+# Output: enabled
+
+# Check if currently active
+sudo systemctl is-active pi-monitor
+# Output: active
+```
+
+#### View Service Logs
+
+```bash
+# View recent logs
+sudo journalctl -u pi-monitor -n 50
+
+# Follow logs in real-time
+sudo journalctl -u pi-monitor -f
+
+# View logs since last boot
+sudo journalctl -u pi-monitor -b
+
+# View logs from last hour
+sudo journalctl -u pi-monitor --since "1 hour ago"
+```
+
+#### Stop the Service
+
+```bash
+# Stop service temporarily (will restart on next boot)
+sudo systemctl stop pi-monitor
+
+# Verify it stopped
+sudo systemctl status pi-monitor
+
+# Disable auto-start on boot (but don't stop now)
+sudo systemctl disable pi-monitor
+
+# Stop AND disable auto-start
+sudo systemctl stop pi-monitor
+sudo systemctl disable pi-monitor
+```
+
+### Update Application with New Features
+
+When you add new features and want to update the running service:
+
+#### Quick Update (Recommended)
+
+```bash
+# 1. Navigate to project directory
+cd /path/to/pi_monitor
+
+# 2. Pull latest changes (if using git)
+git pull
+
+# 3. Rebuild the project
+make clean
+make
+
+# 4. Install new binary (overwrites old one)
+sudo make install
+
+# 5. Restart the service to use new binary
+sudo systemctl restart pi-monitor
+
+# 6. Verify it's running with new version
+sudo systemctl status pi-monitor
+sudo journalctl -u pi-monitor -f
+```
+
+#### Complete Update Workflow
+
+```bash
+# Navigate to project
+cd /path/to/pi_monitor
+
+# Make your code changes in L1_drivers/, L2_services/, or L3_app/
+
+# Rebuild
+make clean && make
+
+# Test locally first (optional but recommended)
+sudo ./bin/pi_monitor
+# Press Ctrl+C to stop
+
+# Install and restart service
+sudo make install
+sudo systemctl restart pi-monitor
+
+# Monitor logs for errors
+sudo journalctl -u pi-monitor -f
+```
+
+#### Rollback to Previous Version
+
+If the new version has issues:
+
+```bash
+# If you have the old binary backed up
+sudo cp /path/to/old/pi_monitor /usr/local/bin/pi_monitor
+sudo systemctl restart pi-monitor
+
+# Or rebuild from git commit
+git checkout <previous-commit-hash>
+make clean && make
+sudo make install
+sudo systemctl restart pi-monitor
 ```
 
 ### Manage Systemd Service
+
+#### Start/Stop/Restart
 
 ```bash
 # Start the service
@@ -392,24 +513,50 @@ sudo systemctl start pi-monitor
 # Stop the service
 sudo systemctl stop pi-monitor
 
-# Restart the service
+# Restart the service (stop then start)
 sudo systemctl restart pi-monitor
 
-# View service logs
-sudo journalctl -u pi-monitor -f
+# Reload configuration if you modified the service file
+sudo systemctl daemon-reload
+sudo systemctl restart pi-monitor
+```
+
+#### Enable/Disable Auto-Start
+
+```bash
+# Enable auto-start on boot
+sudo systemctl enable pi-monitor
 
 # Disable auto-start on boot
 sudo systemctl disable pi-monitor
+
+# Check if enabled
+systemctl is-enabled pi-monitor
+```
+
+#### Service Status and Health
+
+```bash
+# Detailed status information
+sudo systemctl status pi-monitor
+
+# Show service properties
+systemctl show pi-monitor
+
+# Check for service failures
+systemctl --failed | grep pi-monitor
 ```
 
 ### Uninstall
 
-To remove the application and service:
+To completely remove the application and service:
 
 ```bash
-# Stop and disable service (if installed)
+# Stop and disable service
 sudo systemctl stop pi-monitor
 sudo systemctl disable pi-monitor
+
+# Remove service file
 sudo rm /etc/systemd/system/pi-monitor.service
 sudo systemctl daemon-reload
 
@@ -417,14 +564,6 @@ sudo systemctl daemon-reload
 sudo make uninstall
 # Or manually: sudo rm /usr/local/bin/pi_monitor
 ```
-
-## Running
-
-### Direct Execution
-
-```bash
-# Requires sudo for GPIO/SPI access
-sudo ./bin/pi_monitor
 
 # Stop with Ctrl+C for graceful shutdown
 ```
