@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 -IL1_drivers -IL2_services -IL3_app
-LDFLAGS = -lm
+LDFLAGS = -lm -lgpiod
 
 # Directories
 L1_DIR = L1_drivers
