@@ -1,94 +1,67 @@
-# Pi Monitor Makefile - Layered Architecture
+# Compiler and flags
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -IL1_drivers -IL2_services -IL3_app
+LDFLAGS = -lm
 
 # Directories
-SRC_DIR     = .
-INC_DIR     = include
-DRV_DIR     = drivers
-SVC_DIR     = services
-APP_DIR     = app
-BUILD_DIR   = build
-BIN_DIR     = bin
+L1_DIR = L1_drivers
+L2_DIR = L2_services
+L3_DIR = L3_app
+BUILD_DIR = build
+BIN_DIR = bin
 
-# Compiler
-CC          = gcc
-CFLAGS      = -Wall -Wextra -I$(INC_DIR) -O2
-LDFLAGS     = -lgpiod -lm
+# Target executable
+TARGET = $(BIN_DIR)/pi_monitor
 
-# Debug flags
-DEBUG_FLAGS = -g -DDEBUG
+# Source files
+L1_SOURCES = $(wildcard $(L1_DIR)/*.c)
+L2_SOURCES = $(wildcard $(L2_DIR)/*.c)
+L3_SOURCES = $(wildcard $(L3_DIR)/*.c)
 
-# Sources
-DRV_SRCS    = $(DRV_DIR)/gpio_driver.c $(DRV_DIR)/spi_driver.c
-SVC_SRCS    = $(SVC_DIR)/st7735s.c $(SVC_DIR)/fonts.c
-APP_SRCS    = $(APP_DIR)/main.c $(APP_DIR)/system_info.c
+# Object files
+L1_OBJECTS = $(patsubst $(L1_DIR)/%.c,$(BUILD_DIR)/%.o,$(L1_SOURCES))
+L2_OBJECTS = $(patsubst $(L2_DIR)/%.c,$(BUILD_DIR)/%.o,$(L2_SOURCES))
+L3_OBJECTS = $(patsubst $(L3_DIR)/%.c,$(BUILD_DIR)/%.o,$(L3_SOURCES))
 
-ALL_SRCS    = $(DRV_SRCS) $(SVC_SRCS) $(APP_SRCS)
-
-# Objects
-DRV_OBJS    = $(patsubst $(DRV_DIR)/%.c,$(BUILD_DIR)/%.o,$(DRV_SRCS))
-SVC_OBJS    = $(patsubst $(SVC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SVC_SRCS))
-APP_OBJS    = $(patsubst $(APP_DIR)/%.c,$(BUILD_DIR)/%.o,$(APP_SRCS))
-
-ALL_OBJS    = $(DRV_OBJS) $(SVC_OBJS) $(APP_OBJS)
-
-# Target
-TARGET      = $(BIN_DIR)/pi_monitor
+OBJECTS = $(L1_OBJECTS) $(L2_OBJECTS) $(L3_OBJECTS)
 
 # Default target
-all: dirs $(TARGET)
+all: $(TARGET)
 
-# Debug build
-debug: CFLAGS += $(DEBUG_FLAGS)
-debug: all
+# Link the target executable
+$(TARGET): $(OBJECTS) | $(BIN_DIR)
+	$(CC) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+	@echo "Build complete: $(TARGET)"
 
-# Create directories
-dirs:
-	@mkdir -p $(BUILD_DIR) $(BIN_DIR)
-
-# Link
-$(TARGET): $(ALL_OBJS)
-	$(CC) $(ALL_OBJS) -o $@ $(LDFLAGS)
-	@echo "Built: $@"
-
-# Compile drivers
-$(BUILD_DIR)/gpio_driver.o: $(DRV_DIR)/gpio_driver.c
+# Compile L1_drivers sources
+$(BUILD_DIR)/%.o: $(L1_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/spi_driver.o: $(DRV_DIR)/spi_driver.c
+# Compile L2_services sources
+$(BUILD_DIR)/%.o: $(L2_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Compile services
-$(BUILD_DIR)/st7735s.o: $(SVC_DIR)/st7735s.c
+# Compile L3_app sources
+$(BUILD_DIR)/%.o: $(L3_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/fonts.o: $(SVC_DIR)/fonts.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# Create directories if they don't exist
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
-# Compile app
-$(BUILD_DIR)/main.o: $(APP_DIR)/main.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
 
-$(BUILD_DIR)/system_info.o: $(APP_DIR)/system_info.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Clean
+# Clean build artifacts
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
+	@echo "Clean complete"
 
-# Run
-run: all
-	sudo $(TARGET)
+# Rebuild from scratch
+rebuild: clean all
 
-# Install
-install: all
-	sudo cp $(TARGET) /usr/local/bin/
+# Run the application
+run: $(TARGET)
+	sudo ./$(TARGET)
 
-# Info
-info:
-	@echo "Sources:"
-	@echo "  Drivers:  $(DRV_SRCS)"
-	@echo "  Services: $(SVC_SRCS)"
-	@echo "  App:      $(APP_SRCS)"
-	@echo "Target: $(TARGET)"
-
-.PHONY: all debug dirs clean run install info
+.PHONY: all clean rebuild run
