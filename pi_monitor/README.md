@@ -9,6 +9,7 @@ A real-time system monitor for Raspberry Pi 5 with ST7735S TFT LCD display, buil
 - [Architecture](#architecture)
 - [Layer Details](#layer-details)
 - [Dependencies](#dependencies)
+- [Installation](#installation)
 - [Building](#building)
 - [Running](#running)
 - [Makefile Reference](#makefile-reference)
@@ -319,6 +320,102 @@ Build complete: bin/pi_monitor
 ```bash
 make clean    # Remove build artifacts
 make          # Full rebuild
+```
+
+
+## Installation
+
+### Install Binary to System
+
+After building, install the binary to `/usr/local/bin`:
+
+```bash
+# Build and install (requires sudo for installation)
+make
+sudo make install
+```
+
+This installs `pi_monitor` to `/usr/local/bin/pi_monitor`, making it available system-wide.
+
+### Verify Installation
+
+```bash
+which pi_monitor
+# Output: /usr/local/bin/pi_monitor
+
+# Run from anywhere
+sudo pi_monitor
+```
+
+### Create Systemd Service (Auto-start on Boot)
+
+To run pi_monitor automatically at system startup:
+
+```bash
+# Create systemd service file
+sudo tee /etc/systemd/system/pi-monitor.service << 'SYSTEMD_EOF'
+[Unit]
+Description=Pi System Monitor Display
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/pi_monitor
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+SYSTEMD_EOF
+
+# Reload systemd to recognize new service
+sudo systemctl daemon-reload
+
+# Enable service to start on boot
+sudo systemctl enable pi-monitor
+
+# Start service now
+sudo systemctl start pi-monitor
+
+# Check service status
+sudo systemctl status pi-monitor
+```
+
+### Manage Systemd Service
+
+```bash
+# Start the service
+sudo systemctl start pi-monitor
+
+# Stop the service
+sudo systemctl stop pi-monitor
+
+# Restart the service
+sudo systemctl restart pi-monitor
+
+# View service logs
+sudo journalctl -u pi-monitor -f
+
+# Disable auto-start on boot
+sudo systemctl disable pi-monitor
+```
+
+### Uninstall
+
+To remove the application and service:
+
+```bash
+# Stop and disable service (if installed)
+sudo systemctl stop pi-monitor
+sudo systemctl disable pi-monitor
+sudo rm /etc/systemd/system/pi-monitor.service
+sudo systemctl daemon-reload
+
+# Remove binary
+sudo make uninstall
+# Or manually: sudo rm /usr/local/bin/pi_monitor
 ```
 
 ## Running

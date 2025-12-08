@@ -10,6 +10,12 @@ L3_DIR = L3_app
 BUILD_DIR = build
 BIN_DIR = bin
 
+# Installation
+PREFIX ?= /usr/local
+BINDIR = $(PREFIX)/bin
+INSTALL = install
+INSTALL_PROGRAM = $(INSTALL) -m 755
+
 # Target executable
 TARGET = $(BIN_DIR)/pi_monitor
 
@@ -52,6 +58,20 @@ $(BUILD_DIR):
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
+# Install to system
+install: $(TARGET)
+	@echo "Installing to $(BINDIR)..."
+	$(INSTALL) -d $(BINDIR)
+	$(INSTALL_PROGRAM) $(TARGET) $(BINDIR)/pi_monitor
+	@echo "Installation complete: $(BINDIR)/pi_monitor"
+	@echo "Run with: sudo pi_monitor"
+
+# Uninstall from system
+uninstall:
+	@echo "Removing $(BINDIR)/pi_monitor..."
+	rm -f $(BINDIR)/pi_monitor
+	@echo "Uninstall complete"
+
 # Clean build artifacts
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
@@ -64,4 +84,4 @@ rebuild: clean all
 run: $(TARGET)
 	sudo ./$(TARGET)
 
-.PHONY: all clean rebuild run
+.PHONY: all clean rebuild run install uninstall
