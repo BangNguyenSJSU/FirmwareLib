@@ -1,12 +1,12 @@
-#include "system_info.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/statvfs.h>
-#include <sys/sysinfo.h>
-#include <ifaddrs.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "system_info.h"      // System info API declarations
+#include <stdio.h>             // File I/O operations (fopen, fscanf, fgets)
+#include <stdlib.h>            // Standard library (unused, kept for future use)
+#include <string.h>            // String operations (strcmp, strncmp, strcpy)
+#include <sys/statvfs.h>       // Filesystem statistics (statvfs)
+#include <sys/sysinfo.h>       // System information (sysinfo struct)
+#include <ifaddrs.h>           // Network interface addresses (getifaddrs)
+#include <netinet/in.h>        // Internet address family (sockaddr_in)
+#include <arpa/inet.h>         // IP address conversion (inet_ntop)
 
 #define FAN_RPM_PATH "/sys/class/hwmon/hwmon2/fan1_input"
 #define FAN_PWM_PATH "/sys/class/hwmon/hwmon2/pwm1"
