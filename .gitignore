@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+bin/
+*.o
+*.so
+*.a
+*.elf
+
+# Compiled test/debug executables (no extension, so listed explicitly)
+debug_st7735/pi_monito_r
+debug_st7735/st7735_debug
+debug_st7735/st7735_hello
+
+# Backup files
+*.backup
+*.bak
+*.pre-install
+
+# Editor / OS
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
